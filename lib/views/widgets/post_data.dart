@@ -1,9 +1,22 @@
 import 'package:flutter/material.dart';
+import 'package:forum_apps/controllers/post_controller.dart';
+import 'package:forum_apps/models/post_model.dart';
+import 'package:forum_apps/views/post_details.dart';
+import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-class PostData extends StatelessWidget {
-  const PostData({super.key});
+class PostData extends StatefulWidget {
+  const PostData({super.key, required this.post});
 
+  final PostModel post;
+
+  @override
+  State<PostData> createState() => _PostDataState();
+}
+
+class _PostDataState extends State<PostData> {
+  final PostController _postController = Get.put(PostController());
+  Color likedPost = Colors.black;
   @override
   Widget build(BuildContext context) {
     return Card(
@@ -19,7 +32,7 @@ class PostData extends StatelessWidget {
           children: [
             // title + subtitle
             Text(
-              'Cucung Sukardi',
+              widget.post.user!.name!,
               style: GoogleFonts.poppins(
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
@@ -27,7 +40,7 @@ class PostData extends StatelessWidget {
             ),
             const SizedBox(height: 4),
             Text(
-              'cucungSukardi12@gmail.com',
+              widget.post.user!.email!,
               style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey[700]),
             ),
 
@@ -35,7 +48,7 @@ class PostData extends StatelessWidget {
 
             // content text — membatasi baris agar tidak overflow, tapi bisa dihapus jika ingin full text
             Text(
-              'lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.',
+              widget.post.content!,
               style: GoogleFonts.poppins(fontSize: 15, height: 1.4),
               softWrap: true,
               // gunakan maxLines jika ingin membatasi tinggi; hapus baris ini kalau mau semua text tampil
@@ -51,12 +64,23 @@ class PostData extends StatelessWidget {
                 // smaller icon button
                 InkWell(
                   borderRadius: BorderRadius.circular(8),
-                  onTap: () {},
+                  onTap: () async {
+                    var res = await _postController.likeAndDislike(
+                      widget.post.id,
+                    );
+                    _postController.getAllPosts();
+                  },
                   child: Padding(
                     padding: const EdgeInsets.all(6.0),
                     child: Row(
                       children: [
-                        const Icon(Icons.thumb_up, size: 20),
+                        Icon(
+                          Icons.thumb_up,
+                          size: 20,
+                          color: widget.post.liked!
+                              ? Colors.greenAccent
+                              : Colors.black,
+                        ),
                         const SizedBox(width: 6),
                         Text('12', style: GoogleFonts.poppins(fontSize: 13)),
                       ],
@@ -68,14 +92,16 @@ class PostData extends StatelessWidget {
 
                 InkWell(
                   borderRadius: BorderRadius.circular(8),
-                  onTap: () {},
+                  onTap: () {
+                    Get.to(() => PostDetails(post: widget.post));
+                  },
                   child: Padding(
                     padding: const EdgeInsets.all(6.0),
                     child: Row(
                       children: [
                         const Icon(Icons.message, size: 20),
                         const SizedBox(width: 6),
-                        Text('4', style: GoogleFonts.poppins(fontSize: 13)),
+                        Text('40', style: GoogleFonts.poppins(fontSize: 13)),
                       ],
                     ),
                   ),

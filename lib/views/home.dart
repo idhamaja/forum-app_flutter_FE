@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:forum_apps/controllers/post_controller.dart';
 import 'package:forum_apps/views/widgets/post_data.dart';
 import 'package:forum_apps/views/widgets/post_field.dart';
+import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class HomePage extends StatefulWidget {
@@ -11,7 +13,9 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  final TextEditingController _postController = TextEditingController();
+  final PostController _postController = Get.put(PostController());
+  final TextEditingController _textController = TextEditingController();
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -32,11 +36,17 @@ class _HomePageState extends State<HomePage> {
             children: [
               PostField(
                 hintText: 'What do you want to ask?',
-                controller: _postController,
+                controller: _textController,
               ),
               const SizedBox(height: 10),
               ElevatedButton(
-                onPressed: () {},
+                onPressed: () async {
+                  await _postController.createPost(
+                    content: _textController.text.trim(),
+                  );
+                  _textController.clear();
+                  _postController.getAllPosts();
+                },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.blueGrey,
                   elevation: 0,
@@ -45,10 +55,11 @@ class _HomePageState extends State<HomePage> {
                     vertical: 10,
                   ),
                 ),
-                child: const Text(
-                  'Post',
-                  style: TextStyle(color: Colors.white),
-                ),
+                child: Obx(() {
+                  return _postController.isLoading.value
+                      ? const CircularProgressIndicator()
+                      : Text('Post', style: TextStyle(color: Colors.white));
+                }),
               ),
               const SizedBox(height: 15),
               Text(
@@ -59,11 +70,20 @@ class _HomePageState extends State<HomePage> {
                 ),
               ),
               const SizedBox(height: 10),
-              PostData(),
-              const SizedBox(height: 10),
-              PostData(),
-              const SizedBox(height: 10),
-              PostData(),
+              Obx(() {
+                return _postController.isLoading.value
+                    ? const Center(child: CircularProgressIndicator())
+                    : ListView.builder(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        itemCount: _postController.post.value.length,
+                        itemBuilder: (context, index) {
+                          return PostData(
+                            post: _postController.post.value[index],
+                          );
+                        },
+                      );
+              }),
               const SizedBox(height: 10),
             ],
           ),
